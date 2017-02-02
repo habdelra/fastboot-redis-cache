@@ -65,6 +65,7 @@ class RedisCache {
 
       this.client.multi()
         .set(key, body)
+        .set(`key_index_${path}`, key)
         .expire(key, this.expiration)
         .exec(err => {
           if (err) {
