@@ -86,6 +86,7 @@ describe('caching tests', function() {
 
       return cache.put('/', body, mockResponse).then(() => {
         expect(mockRedis['/_mmmmmm']).to.equal(body);
+        expect(mockRedis['key_index_/']).to.equal('/_mmmmmm');
       });
     });
 
