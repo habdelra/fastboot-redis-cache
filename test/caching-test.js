@@ -90,6 +90,22 @@ describe('caching tests', function() {
       });
     });
 
+    it('can build a custom cache key from the documentId prefix', function() {
+      let body = '<body>Hola</body>';
+      let mockResponse = {
+        req: {
+          cookies: {
+            chocolateChip: 'mmmmmm'
+          }
+        }
+      };
+
+      return cache.put('/123-abc', body, mockResponse).then(() => {
+        expect(mockRedis['/123-abc_mmmmmm']).to.equal(body);
+        expect(mockRedis.key_index_123).to.equal('/123-abc_mmmmmm');
+      });
+    });
+
     it('can get a cache item based on a custom cache key', function() {
       let body = '<body>Hola</body>';
       let cookieValue = 'mmmmmm';

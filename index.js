@@ -52,6 +52,8 @@ class RedisCache {
 
     let request = response && response.req;
     let key = this.cacheKey(path, request);
+    let documentIdMatch = /\/([\d]+)/.exec(path);
+    let documentId = documentIdMatch && documentIdMatch.length ? documentIdMatch[1] : null;
 
     return new Promise((res, rej) => {
       let statusCode = response && response.statusCode;
@@ -65,7 +67,7 @@ class RedisCache {
 
       this.client.multi()
         .set(key, body)
-        .set(`key_index_${path}`, key)
+        .set(`key_index_${documentId || path}`, key)
         .expire(key, this.expiration)
         .exec(err => {
           if (err) {
