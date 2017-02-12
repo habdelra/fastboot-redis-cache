@@ -58,6 +58,7 @@ class RedisCache {
     return new Promise((res, rej) => {
       let statusCode = response && response.statusCode;
       let statusCodeStr = statusCode && (statusCode + '');
+      let keyIndex = `key_index_${documentId || path}`;
 
       if (statusCodeStr && statusCodeStr.length &&
          (statusCodeStr.charAt(0) === '4' || statusCodeStr.charAt(0) === '5')) {
@@ -65,17 +66,40 @@ class RedisCache {
         return;
       }
 
-      this.client.multi()
-        .set(key, body)
-        .set(`key_index_${documentId || path}`, key)
-        .expire(key, this.expiration)
-        .exec(err => {
-          if (err) {
-            rej(err);
+      this.client.get(keyIndex, (err, reply) => {
+        if (err) {
+          rej(err);
+        } else {
+          let keys;
+          if (!reply) {
+            keys = [];
           } else {
-            res();
+            try {
+              keys = JSON.parse(reply);
+            } catch (e) {
+              console.error(`can't parse key index for ${keyIndex}: ${reply}`);
+              keys = [ reply ];
+            }
           }
-        });
+
+          keys.push(key);
+
+          console.log(`Creating cache key ${key}`);
+          console.log(`Setting cache key-index ${keyIndex}: ${JSON.stringify(keys)}`);
+
+          this.client.multi()
+            .set(key, body)
+            .set(keyIndex, JSON.stringify(keys))
+            .expire(key, this.expiration)
+            .exec(err => {
+              if (err) {
+                rej(err);
+              } else {
+                res();
+              }
+            });
+        }
+      });
     });
   }
 }
