@@ -3,6 +3,7 @@
 const redis = require('redis');
 
 const FIVE_MINUTES = 5 * 60;
+const ONE_HOUR = 12 * FIVE_MINUTES;
 
 class RedisCache {
   constructor(options) {
@@ -91,6 +92,7 @@ class RedisCache {
             .set(key, body)
             .set(keyIndex, JSON.stringify(keys))
             .expire(key, this.expiration)
+            .expire(keyIndex, ONE_HOUR)
             .exec(err => {
               if (err) {
                 rej(err);
